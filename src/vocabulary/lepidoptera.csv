@@ -1,0 +1,13 @@
+label,pattern,attr,replace
+dimorphism,dimorphism,lower,
+dimorphism,dimorphic,lower,
+mimicry,mimicry,lower,
+mimicry,mimicking,lower,
+mimicry,mimic,lower,
+sex,female,lower,
+sex,females,lower,
+sex,male,lower,
+sex,males,lower,
+sex_trait,sex,lower,
+sex_trait,sexes,lower,
+sex_trait,sexual,lower,

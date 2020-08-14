@@ -127,3 +127,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Project settings
+.spyderproject
+.spyproject
+.idea/
+.ropeproject
+
+.~lock.*
+
+# project private
+data/
+docs/
+junk*
+notebooks/
