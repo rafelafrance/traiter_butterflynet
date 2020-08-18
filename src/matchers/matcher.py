@@ -2,16 +2,17 @@
 
 from traiter.trait_matcher import TraitMatcher  # pylint: disable=import-error
 
+from .dimorphism import DIMORPHISM
 from ..pylib.terms import TERMS
 
-MATCHERS = ()
+MATCHERS = (DIMORPHISM,)
 
 
 class Matcher(TraitMatcher):
     """Base matcher object."""
 
-    def __init__(self, nlp, attach=True, as_entities=True):
-        super().__init__(nlp, as_entities=as_entities)
+    def __init__(self, nlp):
+        super().__init__(nlp)
 
         terms = TERMS
         self.add_terms(terms)
@@ -21,7 +22,7 @@ class Matcher(TraitMatcher):
 
         for matcher in MATCHERS:
             traiters += matcher.get('traits', [])
-            groupers += matcher.get('groupers', [])
+            groupers += matcher.get('groups', [])
 
         self.add_patterns(groupers, 'groups')
         self.add_patterns(traiters, 'traits')
