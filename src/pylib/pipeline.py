@@ -1,7 +1,5 @@
 """Build the NLP pipeline."""
 
-from collections import defaultdict
-
 from traiter.spacy_nlp import spacy_nlp  # pylint: disable=import-error
 
 from .segmenter import sentencizer

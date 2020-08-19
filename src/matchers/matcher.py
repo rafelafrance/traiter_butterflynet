@@ -3,9 +3,10 @@
 from traiter.trait_matcher import TraitMatcher  # pylint: disable=import-error
 
 from .dimorphism import DIMORPHISM
+from .mimicry import MIMICRY
 from ..pylib.terms import TERMS
 
-MATCHERS = (DIMORPHISM,)
+MATCHERS = (DIMORPHISM, MIMICRY)
 
 
 class Matcher(TraitMatcher):
