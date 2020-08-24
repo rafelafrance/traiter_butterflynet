@@ -1,42 +1,40 @@
 """Build the NLP pipeline."""
+import spacy
 
 from traiter.spacy_nlp import spacy_nlp  # pylint: disable=import-error
+from traiter.pipeline import TraitPipeline  # pylint: disable=import-error
+from traiter.spacy_nlp import setup_tokenizer  # pylint: disable=import-error
 
 from .segmenter import sentencizer
 from ..matchers.matcher import Matcher
+from ..pylib.util import TRAIT_STEP
 
 NLP = spacy_nlp(disable=['ner'])
 NLP.add_pipe(sentencizer, before='parser')
 
 MATCHER = Matcher(NLP)
 NLP.add_pipe(MATCHER, after='parser')
-NLP.max_length *= 2
 
 
-def parse(text, with_sents=False):
-    """Parse the traits."""
-    doc = NLP(text)
+class Pipeline(TraitPipeline):
+    """Build a custom traiter pipeline."""
 
-    traits = []
+    steps2link = {TRAIT_STEP}
 
-    sents = []
+    def __init__(self):
+        self.nlp = spacy.load('en_core_web_sm')
+        self.nlp.max_length *= 2
 
-    for sent in doc.sents:
-        sents.append((sent.start_char, sent.end_char))
+        super().__init__(self.nlp)
 
-    for token in doc:
-        label = token.ent_type_
-        data = token._.data
+        self.nlp.disable_pipes(['ner'])
 
-        if label and data and token._.step in ('traits',):
-            data = {k: v for k, v in token._.data.items()
-                    if not k.startswith('_')}
-            data['trait'] = token.ent_type_
-            data['start'] = token.idx
-            data['end'] = token.idx + len(token)
-            traits.append(data)
+        setup_tokenizer(self.nlp)
 
-    # from pprint import pp
-    # pp(traits)
+        self.matcher = Matcher(self.nlp)
 
-    return (traits, sents) if with_sents else traits
+        self.nlp.add_pipe(sentencizer, before='parser')
+        self.nlp.add_pipe(self.matcher, last=True)
+
+
+PIPELINE = Pipeline()

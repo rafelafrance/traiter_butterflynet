@@ -1,11 +1,25 @@
 """Parse dimorphism notations."""
 
+from ..pylib.util import GROUP_STEP, TRAIT_STEP
+
+
+_SIMILARITY_LEMMAS = """
+    similar different dissimilar vary """.split()
+
+_RESEMBLE_LEMMAS = _SIMILARITY_LEMMAS + """ resemble """.split()
+
+_SIZE_LEMMAS = """ large small """.split()
+
+_SEASON_LEMMAS = """ season seasonal """.split()
+
 
 def dimorphism(span):
     """Enrich the match."""
     data = {'dimorphism': span.lower_}
     sexes = set()
     for token in span:
+        if token.lower_ in _SEASON_LEMMAS:
+            return {}
         if token.ent_type_ == 'sex':
             if token.lower_ in sexes:
                 return {}
@@ -21,23 +35,24 @@ def dimorphism_trunc(_):
 
 def not_dimorphism(_):
     """Enrich the match."""
-    data = {}
+    data = {'_forget': True}
     return data
 
 
-_SIMILARITY_LEMMAS = """
-    similar different dissimilar vary """.split()
-
-_RESEMBLE_LEMMAS = _SIMILARITY_LEMMAS + """ resemble """.split()
-
-_SIZE_LEMMAS = """ large small """.split()
-
-_SEASON_LEMMAS = """ season seasonal """.split()
-
-
 DIMORPHISM = {
-    'name': 'dimorphism',
-    'traits': [
+    GROUP_STEP: [
+        {
+            'label': 'dimorphism_key',
+            'patterns': [
+                [
+                    {'ENT_TYPE': 'sexes', 'OP': '?'},
+                    {'ENT_TYPE': 'dimorphic'},
+                    {'TEXT': ':'},
+                ],
+            ],
+        },
+    ],
+    TRAIT_STEP: [
         {
             'label': 'dimorphism',
             'on_match': dimorphism,
@@ -54,6 +69,11 @@ DIMORPHISM = {
                     {'ENT_TYPE': 'sexes', 'OP': '?'},
                     {'ENT_TYPE': 'dimorphic'},
                     {'TEXT': ':', 'OP': '?'},
+                    {'POS': {'IN': ['AUX', 'PART', 'ADV']}, 'OP': '*'},
+                    {'POS': {'IN': ['NOUN', 'VERB']}},
+                ],
+                [
+                    {'ENT_TYPE': 'dimorphism_key'},
                     {'POS': {'IN': ['AUX', 'PART', 'ADV']}, 'OP': '*'},
                     {'POS': {'IN': ['NOUN', 'VERB']}},
                 ],
@@ -76,20 +96,36 @@ DIMORPHISM = {
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                 ],
                 [
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'female'},
                     {'LEMMA': {'IN': ['be']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _RESEMBLE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP']}, 'OP': '*'},
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'male'},
                 ],
                 [
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'female'},
                     {'LEMMA': {'IN': ['be']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _SIZE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP', 'SCONJ']}, 'OP': '*'},
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'male'},
+                ],
+                [
+                    {'ENT_TYPE': 'male'},
+                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'POS': {'IN': ['ADV']}, 'OP': '?'},
+                    {'LEMMA': {'IN': _RESEMBLE_LEMMAS}},
+                    {'POS': {'IN': ['DET', 'ADP']}, 'OP': '*'},
+                    {'ENT_TYPE': 'female'},
+                ],
+                [
+                    {'ENT_TYPE': 'male'},
+                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'POS': {'IN': ['ADV']}, 'OP': '?'},
+                    {'LEMMA': {'IN': _SIZE_LEMMAS}},
+                    {'POS': {'IN': ['DET', 'ADP', 'SCONJ']}, 'OP': '*'},
+                    {'ENT_TYPE': 'female'},
                 ],
             ],
         },
@@ -114,23 +150,40 @@ DIMORPHISM = {
             'on_match': dimorphism_trunc,
             'patterns': [
                 [
-                    {'ENT_TYPE': 'sexes'},
-                    {'ENT_TYPE': 'dimorphic'},
-                    {'TEXT': ':'},
-                    {'ENT_TYPE': {'NOT_IN': ['sex', 'sexes', 'dimorphic']},
+                    {'ENT_TYPE': 'dimorphism_key'},
+                    {'ENT_TYPE': {
+                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
                      'OP': '*'},
-                    {'ENT_TYPE': 'sex'},
-                    {'ENT_TYPE': {'NOT_IN': ['sex', 'sexes', 'dimorphic']},
+                    {'ENT_TYPE': 'female'},
+                    {'ENT_TYPE': {
+                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
                      'OP': '*'},
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'male'},
                 ],
                 [
-                    {'ENT_TYPE': 'sexes'},
-                    {'ENT_TYPE': 'dimorphic'},
-                    {'TEXT': ':'},
-                    {'ENT_TYPE': {'NOT_IN': ['sex', 'sexes', 'dimorphic']},
+                    {'ENT_TYPE': 'dimorphism_key'},
+                    {'ENT_TYPE': {'NOT_IN': [
+                        'female', 'male', 'sexes', 'dimorphic']},
                      'OP': '*'},
-                    {'ENT_TYPE': 'sex'},
+                    {'ENT_TYPE': 'female'},
+                ],
+                [
+                    {'ENT_TYPE': 'dimorphism_key'},
+                    {'ENT_TYPE': {
+                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
+                        'OP': '*'},
+                    {'ENT_TYPE': 'male'},
+                    {'ENT_TYPE': {
+                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
+                        'OP': '*'},
+                    {'ENT_TYPE': 'female'},
+                ],
+                [
+                    {'ENT_TYPE': 'dimorphism_key'},
+                    {'ENT_TYPE': {'NOT_IN': [
+                        'female', 'male', 'sexes', 'dimorphic']},
+                        'OP': '*'},
+                    {'ENT_TYPE': 'male'},
                 ],
             ],
         },

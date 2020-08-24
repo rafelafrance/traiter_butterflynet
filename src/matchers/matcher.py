@@ -1,10 +1,11 @@
 """Base matcher object."""
 
-from traiter.trait_matcher import TraitMatcher  # pylint: disable=import-error
+from traiter.matcher import TraitMatcher  # pylint: disable=import-error
 
 from .dimorphism import DIMORPHISM
 from .mimicry import MIMICRY
 from ..pylib.terms import TERMS
+from ..pylib.util import GROUP_STEP, TRAIT_STEP
 
 MATCHERS = (DIMORPHISM, MIMICRY)
 
@@ -22,8 +23,8 @@ class Matcher(TraitMatcher):
         groupers = []
 
         for matcher in MATCHERS:
-            traiters += matcher.get('traits', [])
-            groupers += matcher.get('groups', [])
+            traiters += matcher.get(TRAIT_STEP, [])
+            groupers += matcher.get(GROUP_STEP, [])
 
-        self.add_patterns(groupers, 'groups')
-        self.add_patterns(traiters, 'traits')
+        self.add_patterns(groupers, GROUP_STEP)
+        self.add_patterns(traiters, TRAIT_STEP)
