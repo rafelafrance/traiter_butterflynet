@@ -1,6 +1,6 @@
 """Base matcher object."""
 
-from traiter.matcher import TraitMatcher  # pylint: disable=import-error
+from traiter.trait_matcher import TraitMatcher
 
 from .dimorphism import DIMORPHISM
 from .mimicry import MIMICRY

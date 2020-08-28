@@ -6,7 +6,7 @@ import pandas as pd
 import tqdm
 from traiter.pylib.util import clean_text
 
-from src.pylib.pipeline import Pipeline
+from src.pylib.pipeline import PIPELINE
 from src.pylib.util import CSV, XLSX
 
 TARGET = 'Full Species Account'
@@ -16,10 +16,9 @@ def main():
     """Extract data from the files."""
     df = pd.read_excel(XLSX, dtype=str).fillna('')
     df = df.set_index('Serial')
-    pipeline = Pipeline()
     for index, row in tqdm.tqdm(df.iterrows()):
         text = clean_text(row[TARGET])
-        traits = pipeline.trait_list(text)
+        traits = PIPELINE.trait_list(text)
         traits = sorted(traits, key=lambda t: (t['trait'], t['start']))
         for i, trait in enumerate(traits, 1):
             name = f'{trait["trait"]}.{i}'
