@@ -15,11 +15,6 @@ class Matcher(TraitMatcher):
     def __init__(self, nlp):
         super().__init__(nlp)
 
-        terms = TERMS
-        self.add_terms(terms)
-
-        groups = TraitMatcher.step_rules(MATCHERS, GROUP_STEP)
-        traits = TraitMatcher.step_rules(MATCHERS, TRAIT_STEP)
-
-        self.add_patterns(groups, GROUP_STEP)
-        self.add_patterns(traits, TRAIT_STEP)
+        self.add_terms(TERMS)
+        self.add_patterns(MATCHERS, GROUP_STEP)
+        self.add_patterns(MATCHERS, TRAIT_STEP)
