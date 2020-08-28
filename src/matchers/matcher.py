@@ -18,12 +18,8 @@ class Matcher(TraitMatcher):
         terms = TERMS
         self.add_terms(terms)
 
-        traiters = []
-        groupers = []
+        groups = TraitMatcher.step_rules(MATCHERS, GROUP_STEP)
+        traits = TraitMatcher.step_rules(MATCHERS, TRAIT_STEP)
 
-        for matcher in MATCHERS:
-            traiters += matcher.get(TRAIT_STEP, [])
-            groupers += matcher.get(GROUP_STEP, [])
-
-        self.add_patterns(groupers, GROUP_STEP)
-        self.add_patterns(traiters, TRAIT_STEP)
+        self.add_patterns(groups, GROUP_STEP)
+        self.add_patterns(traits, TRAIT_STEP)
