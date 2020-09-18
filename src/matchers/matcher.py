@@ -1,6 +1,6 @@
 """Base matcher object."""
 
-from traiter.trait_matcher import TraitMatcher
+from traiter.spacy_nlp.matcher import SpacyMatcher
 
 from .dimorphism import DIMORPHISM
 from .mimicry import MIMICRY
@@ -9,7 +9,7 @@ from ..pylib.util import GROUP_STEP, TERMS, TRAIT_STEP
 MATCHERS = (DIMORPHISM, MIMICRY)
 
 
-class Matcher(TraitMatcher):
+class Matcher(SpacyMatcher):
     """Base matcher object."""
 
     def __init__(self, nlp):
