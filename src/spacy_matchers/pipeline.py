@@ -2,7 +2,7 @@
 from traiter.spacy_nlp.sentencizer import SpacySentencizer
 from traiter.spacy_nlp.pipeline import SpacyPipeline
 
-from ..matchers.matcher import Matcher
+from ..spacy_matchers.matcher import Matcher
 from ..pylib.util import ABBREVS, TRAIT_STEP
 
 
