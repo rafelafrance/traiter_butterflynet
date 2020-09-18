@@ -1,9 +1,9 @@
 """Build the NLP pipeline."""
-from traiter.spacy_nlp.sentencizer import SpacySentencizer
 from traiter.spacy_nlp.pipeline import SpacyPipeline
+from traiter.spacy_nlp.sentencizer import SpacySentencizer
 
+from .consts import ABBREVS, TRAIT_STEP
 from ..spacy_matchers.matcher import Matcher
-from ..pylib.util import ABBREVS, TRAIT_STEP
 
 
 class Pipeline(SpacyPipeline):
