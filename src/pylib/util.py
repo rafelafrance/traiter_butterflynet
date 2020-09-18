@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from traiter.pylib.terms import read_terms
+from traiter.spacy_nlp.terms import read_terms
 
 DATA_DIR = Path.cwd() / 'data'
 VOCAB_DIR = Path.cwd() / 'src' / 'vocabulary'
