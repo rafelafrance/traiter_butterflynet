@@ -3,21 +3,14 @@
 """Download files from UPenn Butterflies of Costa Rica Web Site."""
 
 import argparse
-import random
 import re
 import socket
-import time
 import urllib.request
 from urllib.error import HTTPError
 
 from bs4 import BeautifulSoup
 
 from src.pylib.util import DATA_DIR
-
-# Don't hit the site too hard
-SLEEP_MID = 4
-SLEEP_RADIUS = 3
-SLEEP_RANGE = (SLEEP_MID - SLEEP_RADIUS, SLEEP_MID + SLEEP_RADIUS)
 
 # Make a few attempts to download a page
 ERROR_SLEEP = 120
@@ -51,6 +44,7 @@ def main(args):
     for genus in genera:
         print(genus)
         genus_links = get_genus_links(args, genus)
+        print(genus_links[0][1].name)
         for url, path in genus_links[1:]:
             print(path.name)
             download_page(url, path)
@@ -118,7 +112,7 @@ def download_page(url, path):
             print(f'Attempt {attempt + 1}')
         try:
             urllib.request.urlretrieve(url, path)
-            time.sleep(random.randint(SLEEP_RANGE[0], SLEEP_RANGE[1]))
+            # time.sleep(random.randint(SLEEP_RANGE[0], SLEEP_RANGE[1]))
             break
         except (TimeoutError, socket.timeout, HTTPError):
             pass
