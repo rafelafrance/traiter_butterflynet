@@ -8,7 +8,9 @@ import socket
 import urllib.request
 from urllib.error import HTTPError
 
+import pandas as pd
 from bs4 import BeautifulSoup
+from traiter.pylib.util import today
 
 from src.pylib.util import DATA_DIR
 
@@ -48,6 +50,17 @@ def main(args):
         for url, path in genus_links[1:]:
             print(path.name)
             download_page(url, path)
+
+    write_results(args)
+
+
+def write_results(args):
+    """Output the concatenated tables to a CSV file."""
+    paths = [p for p in OUT_DIR.glob(f'{args.family}_*.html')]
+    dfs = [pd.read_html(str(p), header=0)[0].fillna('') for p in paths]
+    df = pd.concat(dfs, ignore_index=True)
+    path = OUT_DIR / f'{args.family}_{today()}.csv'
+    df.to_csv(path, index=False)
 
 
 def get_genus_links(args, genus):
