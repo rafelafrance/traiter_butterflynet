@@ -10,7 +10,6 @@ from urllib.error import HTTPError
 
 import pandas as pd
 from bs4 import BeautifulSoup
-from traiter.pylib.util import today
 
 from src.pylib.util import DATA_DIR
 
@@ -43,6 +42,9 @@ def main(args):
     family_page = get_family_page(args)
     genera = get_genera(family_page)
 
+    if args.reverse:
+        genera.reverse()
+
     for genus in genera:
         print(genus)
         genus_links = get_genus_links(args, genus)
@@ -51,7 +53,8 @@ def main(args):
             print(path.name)
             download_page(url, path)
 
-    write_results(args)
+    if args.csv_file:
+        write_results(args)
 
 
 def write_results(args):
@@ -59,8 +62,7 @@ def write_results(args):
     paths = [p for p in OUT_DIR.glob(f'{args.family}_*.html')]
     dfs = [pd.read_html(str(p), header=0)[0].fillna('') for p in paths]
     df = pd.concat(dfs, ignore_index=True)
-    path = OUT_DIR / f'{args.family}_{today()}.csv'
-    df.to_csv(path, index=False)
+    df.to_csv(args.csv_file, index=False)
 
 
 def get_genus_links(args, genus):
@@ -139,6 +141,14 @@ def parse_args():
     arg_parser.add_argument(
         '--family', '-f', default='hesperiidae',
         help="""The family (or superfamily to download.""")
+
+    arg_parser.add_argument(
+        '--reverse', '-r', action='store_true',
+        help="""Go through the genus list backwards.""")
+
+    arg_parser.add_argument(
+        '--csv-file', '-C',
+        help="""Output the results to this CSV file.""")
 
     args = arg_parser.parse_args()
     return args
