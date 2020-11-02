@@ -80,6 +80,7 @@ def get_genus_links(args, genus):
                 links.append((url, path))
             break
 
+    print(f'Count: {len(links)}')
     return links
 
 
