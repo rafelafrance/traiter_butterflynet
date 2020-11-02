@@ -9,7 +9,7 @@ from ..matchers.matcher import Matcher
 class Pipeline(SpacyPipeline):
     """Build a custom traiter pipeline."""
 
-    steps2link = {TRAIT_STEP}
+    token2entity = {TRAIT_STEP}
 
     def __init__(self):
         super().__init__()

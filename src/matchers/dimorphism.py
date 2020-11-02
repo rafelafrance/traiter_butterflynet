@@ -38,6 +38,8 @@ def not_dimorphism(_):
     return data
 
 
+_STOPPERS = ['female', 'male', 'sexes', 'dimorphic']
+
 DIMORPHISM = {
     GROUP_STEP: [
         {
@@ -150,38 +152,26 @@ DIMORPHISM = {
             'patterns': [
                 [
                     {'ENT_TYPE': 'dimorphism_key'},
-                    {'ENT_TYPE': {
-                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
-                     'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'female'},
-                    {'ENT_TYPE': {
-                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
-                     'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'male'},
                 ],
                 [
                     {'ENT_TYPE': 'dimorphism_key'},
-                    {'ENT_TYPE': {'NOT_IN': [
-                        'female', 'male', 'sexes', 'dimorphic']},
-                     'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'female'},
                 ],
                 [
                     {'ENT_TYPE': 'dimorphism_key'},
-                    {'ENT_TYPE': {
-                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
-                        'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'male'},
-                    {'ENT_TYPE': {
-                        'NOT_IN': ['female', 'male', 'sexes', 'dimorphic']},
-                        'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'female'},
                 ],
                 [
                     {'ENT_TYPE': 'dimorphism_key'},
-                    {'ENT_TYPE': {'NOT_IN': [
-                        'female', 'male', 'sexes', 'dimorphic']},
-                        'OP': '*'},
+                    {'ENT_TYPE': {'NOT_IN': _STOPPERS}, 'OP': '*'},
                     {'ENT_TYPE': 'male'},
                 ],
             ],
