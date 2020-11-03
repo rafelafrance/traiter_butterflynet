@@ -82,6 +82,8 @@ def get_genus_links(args, genus):
         text = font.get_text()
         if match := COUNTS.search(text):
             _, step, total = [int(g) for g in match.groups()]
+            if step == 0 or total == 0:
+                continue
             for page_no, skip in enumerate(range(step, total, step), 2):
                 skip = SKIP.format(skip)
                 url = GENUS.format(skip, genus)
