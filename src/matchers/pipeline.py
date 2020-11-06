@@ -1,6 +1,7 @@
 """Build the NLP pipeline."""
 from traiter.spacy_nlp.pipeline import SpacyPipeline
 from traiter.spacy_nlp.sentencizer import SpacySentencizer
+from traiter.spacy_nlp.to_entities import ToEntities
 
 from .consts import ABBREVS, TRAIT_STEP
 from ..matchers.matcher import Matcher
@@ -19,9 +20,8 @@ class Pipeline(SpacyPipeline):
 
         self.matcher = Matcher(self.nlp)
         sentencizer = SpacySentencizer(ABBREVS)
+        to_entities = ToEntities(token2entity=self.token2entity)
 
         self.nlp.add_pipe(sentencizer, before='parser')
         self.nlp.add_pipe(self.matcher, last=True)
-
-
-PIPELINE = Pipeline()
+        self.nlp.add_pipe(to_entities, last=True)
