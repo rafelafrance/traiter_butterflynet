@@ -1,4 +1,4 @@
-# The Lepidoptera Traits Database Project [![Build Status](https://travis-ci.org/rafelafrance/traiter_butterflynet.svg?branch=master)](https://travis-ci.org/rafelafrance/traiter_butterflynet)
+# The Lepidoptera Traits Database Project ![Python application](https://github.com/rafelafrance/traiter_butterflynet/workflows/CI/badge.svg)
 
 Extract information from Lepidoptera literature
 
