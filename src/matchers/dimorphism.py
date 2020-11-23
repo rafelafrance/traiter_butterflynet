@@ -60,7 +60,7 @@ DIMORPHISM = {
             'patterns': [
                 [
                     {'POS': 'DET', 'OP': '?'},
-                    {'POS': 'ADJ', 'OP': '?'},
+                    {'POS': {'IN': ['ADJ', 'VERB']}, 'OP': '?'},
                     {'ENT_TYPE': 'sexes'},
                     {'ENT_TYPE': 'dimorphic'},
                     {'POS': 'PART', 'OP': '?'},
@@ -76,7 +76,7 @@ DIMORPHISM = {
                 [
                     {'ENT_TYPE': 'dimorphism_key'},
                     {'POS': {'IN': ['AUX', 'PART', 'ADV']}, 'OP': '*'},
-                    {'POS': {'IN': ['NOUN', 'VERB']}},
+                    {'POS': {'IN': ['NOUN', 'VERB', 'ADJ']}},
                 ],
                 [
                     {'POS': {'IN': ['PART', 'ADV']}, 'OP': '?'},

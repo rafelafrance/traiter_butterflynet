@@ -38,9 +38,9 @@ MIMICRY = {
                     {'POS': {'IN': ['DET']}, 'OP': '*'},
                     {'ENT_TYPE': 'mimic'},
                     {'LEMMA': 'by', 'OP': '?'},
-                    {'POS': {'IN': ['DET', 'NOUN', 'ADP', 'ADJ']}, 'OP': '*'},
+                    {'POS': {'IN': ['DET', 'NOUN', 'ADP', 'ADJ', 'PROPN']}, 'OP': '*'},
                     {'ENT_TYPE': 'flying', 'OP': '?'},
-                    {'POS': {'IN': ['DET', 'NOUN', 'ADP', 'ADJ']}, 'OP': '*'},
+                    {'POS': {'IN': ['DET', 'NOUN', 'ADP', 'ADJ', 'PROPN']}, 'OP': '*'},
                     {'ENT_TYPE': 'butterfly'},
                 ],
                 [
