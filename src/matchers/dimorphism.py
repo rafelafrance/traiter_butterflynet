@@ -1,6 +1,6 @@
 """Parse dimorphism notations."""
 
-from .consts import GROUP_STEP, TRAIT_STEP
+from ..pylib.util import GROUP_STEP, TRAIT_STEP
 
 _SIMILARITY_LEMMAS = """
     similar different dissimilar vary """.split()
