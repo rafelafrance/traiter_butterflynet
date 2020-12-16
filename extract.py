@@ -3,30 +3,36 @@
 """Extract butterfly traits from scientific literature."""
 
 import pandas as pd
-import tqdm
-from traiter.pylib.util import clean_text
 
-from src.pylib.pipeline import PIPELINE
-from src.pylib.util import CSV, XLSX
+from src.matchers.pipeline import Pipeline
+from src.pylib.util import DATA_DIR
 
-TARGET = 'Full Species Account'
+IN_XLSX = DATA_DIR / 'BNet_Traits_MothsRemoved_NamesNormalized_DL_2020.06.12.xlsx'
+IN_CSV = DATA_DIR / 'trait_download_all_traits_2020-11-23T19-55-54JUSTELEVATION.csv'
+OUT_CSV = DATA_DIR / 'BNet_Traits_2020-12-15a.csv'
+
+TARGET = 'Elevation'
 
 
 def main():
     """Extract data from the files."""
-    df = pd.read_excel(XLSX, dtype=str).fillna('')
-    df = df.set_index('Serial')
-    for index, row in tqdm.tqdm(df.iterrows()):
-        text = clean_text(row[TARGET])
-        traits = PIPELINE.trait_list(text)
-        traits = sorted(traits, key=lambda t: (t['trait'], t['start']))
-        for i, trait in enumerate(traits, 1):
-            name = f'{trait["trait"]}.{i}'
-            if name not in df.columns:
-                df[name] = ''
-            df.at[index, name] = trait[trait['trait']]
+    df = pd.read_csv(IN_CSV, dtype=str).fillna('')
+    df = df.set_index('Unique ID')
+    df[TARGET] = df[TARGET].str.strip()
+    df[TARGET] = df[TARGET].str.replace(r'(?<=\d)\s(?=\d)', '', regex=True)
 
-    df.to_csv(CSV)
+    pipeline = Pipeline()
+
+    for doc in pipeline.nlp.pipe(df[TARGET]):
+        traits = pipeline.trait_list(doc)
+        if doc.text:
+            print('=' * 80)
+            print(doc)
+            for trait in traits:
+                print(trait)
+            print()
+
+    # df.to_csv(OUT_CSV)
 
 
 if __name__ == '__main__':
