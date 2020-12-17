@@ -1,5 +1,7 @@
 """Merge multiple elevation traits into one for each document."""
 
+from pprint import pp
+
 from spacy.tokens import Span
 
 from ..pylib.util import MERGE_STEP
@@ -19,13 +21,20 @@ MAX = 99_999_999
 
 def merge(doc):
     """Merge multiple elevation traits into one for each document."""
+    if doc.text:
+        print('=' * 80)
+        print(doc)
+
     elevations = [e for e in doc.ents if e.label_ in ELEVATIONS]
     if len(elevations) < 2:
+        for ent in doc.ents:
+            pp(ent._.data)
         return doc
 
     merged = init_entity_data()
 
     for partial in elevations:
+        pp(partial)
         data = partial._.data
 
         merged['start_idx'] = min(merged['start_idx'], partial.start)
@@ -34,46 +43,21 @@ def merge(doc):
         merged['start'] = min(merged['start'], partial.start_char)
         merged['end'] = max(merged['end'], partial.end_char)
 
-        if units := data.get('elevation_units'):
-            imperial = data.get('imperial_length', False)
-            # If no units in merged then update things
-            if not merged['elevation_units']:
-                merged['elevation_units'] = units
-                merged['imperial_length'] = imperial
-            # If merged units are imperial and partial units are metric
-            # then reset object and add the new data
-            elif merged['imperial_length'] and not imperial:
-                reset_entity_data(merged)
-                merged['elevation_units'] = units
-                merged['imperial_length'] = imperial
-            # If merged and partial units don't match then skip the entity
-            elif merged['elevation_units'] != units:
-                continue
-            # Else just extend the range
-
-        if partial.label_ == 'high_elevation':
-            print('high_elevation')
+        if not update_units(data, merged):
             continue
 
-        if partial.label_ == 'high_elevation_approx':
-            merged['elevation_high_approx'] = True
+        # if partial.label_ == 'high_elevation':
+        #     if (merged['elevation_high'] > data['elevation_high']
+        #             > merged['elevation_max']):
+        #         merged['elevation_max'] = merged['elevation_high']
 
-        if (value := data.get('elevation_min')) is not None:
-            merged['elevation_min'] = min(merged['elevation_min'], value)
-
-        if (value := data.get('elevation_low')) is not None:
-            merged['elevation_low'] = min(merged['elevation_low'], value)
-
-        if (value := data.get('elevation_high')) is not None:
-            merged['elevation_high'] = max(merged['elevation_high'], value)
-
-        if (value := data.get('elevation_max')) is not None:
-            merged['elevation_max'] = max(merged['elevation_max'], value)
+        expand_range(data, merged, partial)
 
     ent = Span(doc, merged['start_idx'], merged['end_idx'], label=merged['trait'])
     ent._.step = MERGE_STEP
     ent._.data = {k: v for k, v in merged.items()
                   if k in KEYS and v != MIN and v != MAX and v is not None}
+    pp(ent._.data)
 
     entities = [e for e in doc.ents if e.label_ not in ELEVATIONS]
     entities += [ent]
@@ -81,6 +65,46 @@ def merge(doc):
     doc.ents = tuple(entities)
 
     return doc
+
+
+def expand_range(data, merged, partial):
+    """Expand the range of the elevations."""
+    if partial.label_ == 'high_elevation_approx':
+        merged['elevation_high_approx'] = True
+
+    if (value := data.get('elevation_min')) is not None:
+        merged['elevation_min'] = min(merged['elevation_min'], value)
+    if (value := data.get('elevation_low')) is not None:
+        merged['elevation_low'] = min(merged['elevation_low'], value)
+    if (value := data.get('elevation_high')) is not None:
+        merged['elevation_high'] = max(merged['elevation_high'], value)
+    if (value := data.get('elevation_max')) is not None:
+        merged['elevation_max'] = max(merged['elevation_max'], value)
+
+
+def update_units(data, merged):
+    """Update the units for the merged entity."""
+    if units := data.get('elevation_units'):
+        imperial = data.get('imperial_length', False)
+
+        # If no units in merged then update things
+        if not merged['elevation_units']:
+            merged['elevation_units'] = units
+            merged['imperial_length'] = imperial
+
+        # If merged units are imperial and partial units are metric
+        # then reset object and add the new data
+        elif merged['imperial_length'] and not imperial:
+            reset_entity_data(merged)
+            merged['elevation_units'] = units
+            merged['imperial_length'] = imperial
+
+        # If merged and partial units don't match then skip the entity
+        elif merged['elevation_units'] != units:
+            return False
+
+        # Else just extend the range
+    return True
 
 
 def init_entity_data():

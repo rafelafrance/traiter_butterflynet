@@ -13,6 +13,7 @@ HIGH = 'below under'.split()
 WORDS = 'elevation_word word_number'.split()
 UNITS = 'metric_length imperial_length'.split()
 HIGH_APPROX = 'higher'.split()
+NOPE = """ species b ) """.split()
 
 
 def elevation(span, fields=''):
@@ -37,6 +38,9 @@ def elevation_words(span, fields=''):
     data = {}
 
     values = [t.text for t in span if t.ent_type_ in WORDS]
+    diff = len(fields) - len(values)
+    if diff:
+        values += [values[-1] * diff]
     for field, value in zip(fields, values):
         data[field] = int(REPLACE.get(value, value))
 
@@ -54,6 +58,11 @@ def elevation_words(span, fields=''):
         data['elevation_units'] = REPLACE.get(units, units)
 
     return data
+
+
+def not_an_elevation(_):
+    """Negative matches."""
+    return {'_forget': True}
 
 
 ELEVATION = {
@@ -123,6 +132,16 @@ ELEVATION = {
             'patterns': [
                 [
                     {'LOWER': {'IN': HIGH_APPROX}},
+                ],
+            ],
+        },
+        {
+            'label': 'not_an_elevation',
+            'on_match': not_an_elevation,
+            'patterns': [
+                [
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'LOWER': {'IN': NOPE}},
                 ],
             ],
         },

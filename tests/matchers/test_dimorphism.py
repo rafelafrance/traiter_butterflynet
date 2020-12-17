@@ -96,8 +96,8 @@ class TestDimorphism(unittest.TestCase):
             test_traits(shorten("""
                 Sexual dimorphism: Upper side of male with brown colour
                 bright reddish-orange, and some  black markings; in the female
-                 llie ground colour is duller and the black markings 
-                 more numerous.
+                llie ground colour is duller and the black markings
+                more numerous.
                 """)),
             [{'dimorphism': 'sexual dimorphism',
               'trait': 'dimorphism', 'start': 0, 'end': 117}]

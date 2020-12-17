@@ -25,12 +25,6 @@ def main():
 
     for doc in pipeline.nlp.pipe(df[TARGET]):
         traits = pipeline.trait_list(doc)
-        if doc.text:
-            print('=' * 80)
-            print(doc)
-            for trait in traits:
-                print(trait)
-            print()
 
     # df.to_csv(OUT_CSV)
 
