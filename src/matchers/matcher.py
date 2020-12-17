@@ -2,13 +2,13 @@
 
 from traiter.pylib.matcher import SpacyMatcher
 
-# from .dimorphism import DIMORPHISM
+from .dimorphism import DIMORPHISM
 from .elevation import ELEVATION
-# from .mimicry import MIMICRY
+from .mimicry import MIMICRY
 from ..pylib.util import GROUP_STEP, TERMS, TRAIT_STEP
 
-# MATCHERS = [DIMORPHISM, MIMICRY, ELEVATION]
-MATCHERS = [ELEVATION]
+MATCHERS = [DIMORPHISM, MIMICRY, ELEVATION]
+# MATCHERS = [ELEVATION]
 
 
 class Matcher(SpacyMatcher):

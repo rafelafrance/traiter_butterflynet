@@ -6,6 +6,7 @@ from traiter.pylib.terms import read_terms, shared_terms
 
 DATA_DIR = Path.cwd() / 'data'
 VOCAB_DIR = Path.cwd() / 'src' / 'vocabulary'
+OUTPUT_DIR = Path.cwd() / 'output'
 
 GROUP_STEP = 'group'
 TRAIT_STEP = 'traits'

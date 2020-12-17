@@ -1,61 +1,56 @@
 """Parse numbers."""
 
 import re
-from functools import partial
 
 from traiter.pylib.util import to_positive_int
 
 from ..pylib.util import DASH, INT_RE, REPLACE, TRAIT_STEP
 
-TO = 'up to and'.split() + DASH
-MAX = 'up to'.split()
-HIGH = 'below under'.split()
+TO = 'up to about below under and between '.split() + DASH
 WORDS = 'elevation_word word_number'.split()
 UNITS = 'metric_length imperial_length'.split()
-HIGH_APPROX = 'higher'.split()
-NOPE = """ species b ) """.split()
+APPROX = ' ca about higher lower above below more less < > ~ '.split()
+
+PREFIX_NO = """ ' """.split()
+SUFFIX_NO = """ species b s e ) ° ' """.split()
 
 
-def elevation(span, fields=''):
+def elevation(span):
     """Enrich the elevation match."""
-    fields = fields.split()
     data = {}
 
-    values = [t.text for t in span if re.match(INT_RE, t.text)]
-    for field, value in zip(fields, values):
-        data[field] = to_positive_int(value)
-
-    units = [t.lower_ for t in span if t.ent_type_ in UNITS]
-    if units:
-        data['elevation_units'] = REPLACE.get(units[0], units[0])
-
-    return data
-
-
-def elevation_words(span, fields=''):
-    """Convert words to numbers before enriching the match."""
-    fields = fields.split()
-    data = {}
-
-    values = [t.text for t in span if t.ent_type_ in WORDS]
-    diff = len(fields) - len(values)
-    if diff:
-        values += [values[-1] * diff]
-    for field, value in zip(fields, values):
-        data[field] = int(REPLACE.get(value, value))
+    values = [to_positive_int(t.text) for t in span if re.match(INT_RE, t.text)]
+    values += [int(REPLACE[t.lower_]) for t in span if t.ent_type_ in WORDS]
 
     multiply = [t.text for t in span if t.ent_type_ == 'numeric_units']
     if multiply:
         multiply = int(REPLACE[multiply[0]])
-        for field in fields:
-            data[field] *= multiply
+        values = [v * multiply for v in values]
 
-    units = [t for t in span if t.ent_type_ in UNITS]
+    data['elevation_low'] = min(values)
+    data['elevation_high'] = max(values)
+
+    # Set up the units
+    units = [t.lower_ for t in span if t.ent_type_ in UNITS]
     if units:
-        if units[0].ent_type_ == 'imperial_length':
-            data['imperial_length'] = True
-        units = units[0].lower_
-        data['elevation_units'] = REPLACE.get(units, units)
+        units = REPLACE.get(units[0], units[0])
+        data['elevation_units'] = units
+
+        # Remove ridiculous values.
+        if (units not in ('m', 'ft')
+                or (units == 'm' and data['elevation_high'] > 9_000)
+                or (units == 'ft' and data['elevation_high'] > 30_000)):
+            return {'_forget': True}
+
+    if data['elevation_low'] == data['elevation_high']:
+
+        # handle "up to 6000 m."
+        if span[0].lower_ == 'up' and span[1].lower_:
+            data['elevation_approx'] = True
+
+        # Filter years like "1937"
+        if not data.get('elevation_units') and 1900 < data['elevation_high'] < 2000:
+            return {'_forget': True}
 
     return data
 
@@ -69,53 +64,20 @@ ELEVATION = {
     TRAIT_STEP: [
         {
             'label': 'elevation',
-            'on_match': partial(
-                elevation,
-                fields='elevation_low elevation_high'),
+            'on_match': elevation,
             'patterns': [
                 [
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
                 ],
                 [
-                    {'TEXT': {'REGEX': INT_RE}},
+                    {'TEXT': {'REGEX': INT_RE}, 'OP': '?'},
                     {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
                     {'LOWER': {'IN': TO}},
                     {'LOWER': {'IN': TO}, 'OP': '?'},
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
                 ],
-            ],
-        },
-        {
-            'label': 'max_elevation',
-            'on_match': partial(elevation, fields='elevation_max'),
-            'patterns': [
-                [
-                    {'LOWER': {'IN': MAX}},
-                    {'LOWER': {'IN': MAX}, 'OP': '?'},
-                    {'TEXT': {'REGEX': INT_RE}},
-                    {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
-                ],
-            ],
-        },
-        {
-            'label': 'high_elevation',
-            'on_match': partial(elevation, fields='elevation_high'),
-            'patterns': [
-                [
-                    {'LOWER': {'IN': HIGH}},
-                    {'TEXT': {'REGEX': INT_RE}},
-                    {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
-                ],
-            ],
-        },
-        {
-            'label': 'elevation',
-            'on_match': partial(
-                elevation_words,
-                fields='elevation_low elevation_high elevation_max'),
-            'patterns': [
                 [
                     {'ENT_TYPE': 'elevation_word'},
                     {'LOWER': {'IN': TO}, 'OP': '?'},
@@ -125,13 +87,25 @@ ELEVATION = {
                     {'ENT_TYPE': 'numeric_units', 'OP': '?'},
                     {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
                 ],
+                [
+                    {'ENT_TYPE': 'elevation_word'},
+                    {'LOWER': {'IN': TO}, 'OP': '?'},
+                    {'LOWER': {'IN': TO}, 'OP': '?'},
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'ENT_TYPE': {'IN': UNITS}, 'OP': '?'},
+                ],
             ],
         },
         {
-            'label': 'high_elevation_approx',
+            'label': 'elevation_approx',
             'patterns': [
                 [
-                    {'LOWER': {'IN': HIGH_APPROX}},
+                    {'LOWER': {'IN': ['or']}, 'OP': '?'},
+                    {'LOWER': {'IN': APPROX}},
+                ],
+                [
+                    {'LOWER': {'IN': ['or']}},
+                    {'LOWER': {'IN': ['more']}},
                 ],
             ],
         },
@@ -141,7 +115,16 @@ ELEVATION = {
             'patterns': [
                 [
                     {'TEXT': {'REGEX': INT_RE}},
-                    {'LOWER': {'IN': NOPE}},
+                    {'LOWER': {'IN': SUFFIX_NO}},
+                ],
+                [
+                    {'LOWER': {'IN': PREFIX_NO}},
+                    {'TEXT': {'REGEX': INT_RE}},
+                ],
+                [
+                    {'LOWER': {'IN': PREFIX_NO}},
+                    {'LOWER': {'IN': DASH}},
+                    {'TEXT': {'REGEX': INT_RE}},
                 ],
             ],
         },

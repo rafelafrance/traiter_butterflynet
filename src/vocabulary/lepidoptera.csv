@@ -30,3 +30,7 @@ flying,night-flying,lower,
 flying,slow-flying,lower,
 flying,fast-flying,lower,
 elevation_word,sea level,lower,0
+elevation_word,sea-level,lower,0
+elevation_word,sealevel,lower,0
+elevation_word,coastal region,lower,0
+elevation_word,coastal regions,lower,0
