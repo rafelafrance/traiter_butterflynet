@@ -7,11 +7,11 @@ from ..pylib.util import MERGE_STEP
 ELEVATIONS = """ elevation elevation_approx """.split()
 
 KEYS = """
-    trait start end elevation_units elevation_approx elevation_low elevation_high
+    trait start end elevation_units elevation_approx elev_low elev_high
     """.split()
 
-MIN = -1
-MAX = 99_999_999
+MIN_VALUE = -1
+MAX_VALUE = 99_999_999
 
 
 def merge(doc):
@@ -36,15 +36,20 @@ def merge(doc):
 
         expand_range(data, merged, partial)
 
-    if merged['elevation_low'] == merged['elevation_high']:
-        merged['elevation_low'] = None
+    if merged['elev_low'] == merged['elev_high']:
+        merged['elev_low'] = None
+    elif merged['elev_high'] <= MIN_VALUE:
+        merged['elev_high'] = None
+    elif merged['elev_low'] > merged['elev_high']:
+        low, high = merged['elev_low'], merged['elev_high']
+        merged['elev_low'], merged['elev_high'] = high, low
 
     ent = Span(doc, merged['start_idx'], merged['end_idx'], label=merged['trait'])
     ent._.step = MERGE_STEP
     ent._.data = {k: v for k, v in merged.items() if k in KEYS and v is not None}
 
     entities = [e for e in doc.ents if e.label_ not in ELEVATIONS]
-    if merged['elevation_low'] != MAX and merged['elevation_high'] != MIN:
+    if merged['elev_low'] != MAX_VALUE and merged['elev_high'] != MIN_VALUE:
         entities += [ent]
 
     doc.ents = tuple(entities)
@@ -57,10 +62,22 @@ def expand_range(data, merged, partial):
     if partial.label_ == 'elevation_approx' or data.get('elevation_approx'):
         merged['elevation_approx'] = True
 
-    if (value := data.get('elevation_low')) is not None:
-        merged['elevation_low'] = min(merged['elevation_low'], value)
-    if (value := data.get('elevation_high')) is not None:
-        merged['elevation_high'] = max(merged['elevation_high'], value)
+    data_low = data.get('elev_low')
+    data_high = data.get('elev_high')
+    merged_low = merged.get('elev_low')
+    merged_high = merged.get('elev_high')
+
+    if data_low is not None:
+        min_values = [data_low, merged_low]
+        if merged_high != MIN_VALUE:
+            min_values += [merged_high]
+        merged['elev_low'] = min(v for v in min_values if v is not None)
+
+    if data_high is not None:
+        max_values = [data_high, merged_high]
+        if merged_low != MAX_VALUE:
+            max_values += [merged_low]
+        merged['elev_high'] = max(v for v in max_values if v is not None)
 
 
 def update_units(data, merged):
@@ -89,12 +106,12 @@ def init_entity_data():
     """Initialize the new entity object."""
     return {
         'trait': 'elevation',
-        'start': MAX,
-        'end': MIN,
-        'start_idx': MAX,
-        'end_idx': MIN,
-        'elevation_low': MAX,
-        'elevation_high': MIN,
+        'start': MAX_VALUE,
+        'end': MIN_VALUE,
+        'start_idx': MAX_VALUE,
+        'end_idx': MIN_VALUE,
+        'elev_low': MAX_VALUE,
+        'elev_high': MIN_VALUE,
         'elevation_units': '',
         'elevation_approx': None,
     }
@@ -102,6 +119,6 @@ def init_entity_data():
 
 def reset_entity_data(data):
     """Reset the new entity object."""
-    data['elevation_low'] = MAX
-    data['elevation_high'] = MIN
+    data['elev_low'] = MAX_VALUE
+    data['elev_high'] = MIN_VALUE
     data['elevation_units'] = ''

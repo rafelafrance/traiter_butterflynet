@@ -27,8 +27,8 @@ def elevations():
     df = df.set_index('Unique ID')
     df[TARGET] = df[TARGET].str.strip()
     df[TARGET] = df[TARGET].str.replace(r'(?<=[\d,])\s(?=[\d,])', '', regex=True)
-    df['elevation_low'] = None
-    df['elevation_high'] = None
+    df['elev_low'] = None
+    df['elev_high'] = None
     df['elevation_units'] = None
     df['elevation_approx'] = None
     pipeline = Pipeline()
