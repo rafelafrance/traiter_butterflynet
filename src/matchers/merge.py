@@ -68,16 +68,12 @@ def expand_range(data, merged, partial):
     merged_high = merged.get('elev_high')
 
     if data_low is not None:
-        min_values = [data_low, merged_low]
-        if merged_high != MIN_VALUE:
-            min_values += [merged_high]
-        merged['elev_low'] = min(v for v in min_values if v is not None)
+        min_values = (data_low, merged_low, merged_high)
+        merged['elev_low'] = min(v for v in min_values if v not in (None, MIN_VALUE))
 
     if data_high is not None:
-        max_values = [data_high, merged_high]
-        if merged_low != MAX_VALUE:
-            max_values += [merged_low]
-        merged['elev_high'] = max(v for v in max_values if v is not None)
+        max_values = (data_high, merged_high, merged_low)
+        merged['elev_high'] = max(v for v in max_values if v not in (None, MAX_VALUE))
 
 
 def update_units(data, merged):
