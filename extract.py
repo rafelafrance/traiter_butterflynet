@@ -10,10 +10,10 @@ from src.pylib.util import DATA_DIR, OUTPUT_DIR
 
 IN_XLSX = DATA_DIR / 'BNet_Traits_MothsRemoved_NamesNormalized_DL_2020.06.12.xlsx'
 IN_CSV = DATA_DIR / 'trait_download_all_traits_2020-11-23T19-55-54JUSTELEVATION.csv'
-OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-21a.csv'
+OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-21c.csv'
 
 TARGET = 'Elevation'
-KEEP = ' elev_low elev_high elev_units elev_approx '.split()
+KEEP = ' elev_low elev_high elev_units_inferred elev_approx '.split()
 
 
 def elevations():
@@ -29,7 +29,6 @@ def elevations():
 
     pipeline = Pipeline()
 
-    # for index, row in df.iterrows():
     for index, row in tqdm(df.iterrows()):
         text = row[TARGET]
 
@@ -42,6 +41,7 @@ def elevations():
             for key, value in trait.items():
                 if key in KEEP:
                     df.at[index, key] = value
+
     df.to_csv(OUT_CSV, index=False)
 
 

@@ -15,6 +15,8 @@ REJECT_ENTS = """ time_units sex month """.split()
 PREFIX_REJECT = """ ' perching perched """.split()
 SUFFIX_REJECT = """ species b s e ) ° ' """.split()
 
+FEET_TO_METERS = 0.3048
+
 
 def elevation(span):
     """Enrich the elevation match."""
@@ -34,7 +36,6 @@ def valid_units(span, data):
     """Validate and update data units."""
     units = [t.lower_ for t in span if t.ent_type_ in UNIT_ENTS]
 
-    # Having no units is OK
     if units:
         units = REPLACE.get(units[0], units[0])
 
@@ -43,6 +44,10 @@ def valid_units(span, data):
             return False
 
         data['elev_units'] = units
+
+    # Having no units is OK but flag it
+    else:
+        data['elev_units_inferred'] = True
 
     return True
 
@@ -77,10 +82,11 @@ def valid_values(span, data):
     elif len(values) == 2 and values[0] < 30 and values[1] % 100 == 0:
         values[0] *= 100
 
-    # Remove values that are too high
-    if (not units or units == 'ft') and values[-1] > 30_000:
-        return False
+    # Convert feet to meters
+    if units == 'ft':
+        values = [round(v * FEET_TO_METERS) for v in values]
 
+    # Remove values that are too high
     if units == 'm' and values[-1] > 9_000:
         return False
 

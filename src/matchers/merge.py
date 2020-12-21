@@ -7,7 +7,7 @@ from ..pylib.util import MERGE_STEP
 ELEVATION = """ elevation elev_approx """.split()
 
 KEYS = """
-    trait start end elev_units elev_approx elev_low elev_high
+    trait start end elev_units_inferred elev_approx elev_low elev_high
     """.split()
 
 # Sentinels for expanding elevation ranges
@@ -41,13 +41,13 @@ def merge(doc):
             merged['elev_approx'] = True
             continue
 
-        if not update_units(data, merged):
-            continue
-
         update_range(data, merged)
 
         if data.get('elev_approx'):
             merged['elev_approx'] = True
+
+        if data.get('elev_units_inferred'):
+            merged['elev_units_inferred'] = True
 
     adjust_range(merged)
     update_doc_entities(doc, merged)
@@ -61,29 +61,6 @@ def update_indexes(elev, merged):
     merged['end_idx'] = max(merged['end_idx'], elev.end)
     merged['start'] = min(merged['start'], elev.start_char)
     merged['end'] = max(merged['end'], elev.end_char)
-
-
-def update_units(data, merged):
-    """Update the units for the merged entity."""
-    if units := data.get('elev_units'):
-
-        # If no units in merged then update things
-        if not merged['elev_units']:
-            merged['elev_units'] = units
-
-        # If merged units are imperial and data units are metric
-        # then reset object and add the new metric elevations
-        elif merged['elev_units'] == 'ft' and units == 'm':
-            merged['elev_low'] = MAX_VALUE
-            merged['elev_high'] = MIN_VALUE
-            merged['elev_units'] = units
-
-        # If merged and partial units don't match then skip the entity
-        elif merged['elev_units'] != units:
-            return False
-
-        # Else just extend the range
-    return True
 
 
 def update_range(data, merged):
