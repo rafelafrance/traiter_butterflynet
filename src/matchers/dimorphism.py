@@ -89,16 +89,16 @@ DIMORPHISM = {
                     {'ENT_TYPE': 'dimorphic'},
                 ],
                 [
-                    {'ENT_TYPE': 'sexes'},
+                    {'ENT_TYPE': {'IN': ['sexes', 'sex']}},
                     {'TEXT': ':', 'OP': '?'},
-                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'LEMMA': {'IN': ['be', 'vary']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _SIMILARITY_LEMMAS}},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                 ],
                 [
                     {'ENT_TYPE': 'female'},
-                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'LEMMA': {'IN': ['be', 'vary']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _RESEMBLE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP']}, 'OP': '*'},
@@ -106,7 +106,7 @@ DIMORPHISM = {
                 ],
                 [
                     {'ENT_TYPE': 'female'},
-                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'LEMMA': {'IN': ['be', 'vary']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _SIZE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP', 'SCONJ']}, 'OP': '*'},
@@ -114,7 +114,7 @@ DIMORPHISM = {
                 ],
                 [
                     {'ENT_TYPE': 'male'},
-                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'LEMMA': {'IN': ['be', 'vary']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _RESEMBLE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP']}, 'OP': '*'},
@@ -122,7 +122,7 @@ DIMORPHISM = {
                 ],
                 [
                     {'ENT_TYPE': 'male'},
-                    {'LEMMA': {'IN': ['be']}, 'OP': '?'},
+                    {'LEMMA': {'IN': ['be', 'vary']}, 'OP': '?'},
                     {'POS': {'IN': ['ADV']}, 'OP': '?'},
                     {'LEMMA': {'IN': _SIZE_LEMMAS}},
                     {'POS': {'IN': ['DET', 'ADP', 'SCONJ']}, 'OP': '*'},

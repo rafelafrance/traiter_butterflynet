@@ -206,10 +206,9 @@ class TestDimorphism(unittest.TestCase):
 
     def test_dimorphism_26(self):
         self.assertEqual(
-            test_traits(shorten("""
-                Both sexes vary considerably in size.""")),
-            [{'dimorphism': 'sexes vary considerably',
-              'trait': 'dimorphism', 'start': 5, 'end': 28}]
+            test_traits(shorten("""Both sexes vary considerably in size.""")),
+            [{'dimorphism': 'both sexes vary considerably',
+              'trait': 'dimorphism', 'start': 0, 'end': 28}]
         )
 
     def test_dimorphism_27(self):

@@ -1,43 +1,92 @@
 """Parse numbers."""
 
 import re
-from functools import partial
 
 from traiter.pylib.util import to_positive_int
 
-from ..pylib.util import DASH, INT_RE, REPLACE, TRAIT_STEP
+from ..pylib.util import APPROX, EXTREME, IMPLIED, INT_RE, REPLACE, TRAIT_STEP
 
-MIN_VALUE = -1
-
-WORD_ENTS = 'elevation_word word_number'.split()
-UNIT_ENTS = 'metric_length imperial_length'.split()
-
-# Tokens that indicate a single max value follows
-MAX_WORDS = """ up   to below about < """.split()
-MIN_WORDS = """ down to above about > """.split()
-TO_WORDS = 'up to ca about below under and between '.split() + DASH
-APPROX_WORDS = ' ca about higher lower above below more less < > ~ '.split()
+NUM_WORD_ENTS = """ elev_word number_word """.split()
+UNIT_ENTS = """ elev_units """.split()
+BETWEEN_ENTS = """ dash elev_to elev_approx """.split()
+APPROX_ENTS = """ elev_approx """.split()
+REJECT_ENTS = """ time_units sex month """.split()
 
 PREFIX_REJECT = """ ' """.split()
 SUFFIX_REJECT = """ species b s e ) ° ' """.split()
 
 
-def elevation(span, low=None, high=None):
+def elevation(span):
     """Enrich the elevation match."""
     data = {}
 
-    values = [to_positive_int(t.text) for t in span if re.match(INT_RE, t.text)]
-    values += [int(REPLACE[t.lower_]) for t in span if t.ent_type_ in WORD_ENTS]
-    values = multiply_values(span, values)
-
-    data['elev_low'] = low if low is not None else min(values)
-    if high != MIN_VALUE:
-        data['elev_high'] = high if high is not None else max(values)
-
-    if problem_units(span, data) or problem_values(data):
+    if not (valid_units(span, data) and valid_values(span, data)):
         return {'_forget': True}
 
+    set_extreme(span, data)
+    set_approx(span, data)
+    set_implied(span, data)
+
     return data
+
+
+def valid_units(span, data):
+    """Validate and update data units."""
+    units = [t.lower_ for t in span if t.ent_type_ in UNIT_ENTS]
+
+    # Having no units is OK
+    if units:
+        units = REPLACE.get(units[0], units[0])
+
+        # Remove bad units
+        if units not in ('m', 'ft'):
+            return False
+
+        data['elev_units'] = units
+
+    return True
+
+
+def valid_values(span, data):
+    """Validate and update data values."""
+    values = [to_positive_int(t.text) for t in span if re.match(INT_RE, t.text)]
+    values += [int(REPLACE[t.lower_]) for t in span if t.ent_type_ in NUM_WORD_ENTS]
+    values = multiply_values(span, values)
+
+    # Remove triples like" "sea level to one or two thousand feet"
+    if len(values) > 1:
+        values = [min(values), max(values)]
+
+    units = data.get('elev_units')
+
+    if len(values) == 1 and not units:
+
+        # Remove years
+        if 1800 < values[0] < 2000:
+            return False
+
+        # Remove values that are too low
+        if values[0] < 10:
+            return False
+
+    # Handle 2-3000 ft
+    elif len(values) == 2 and values[0] < 10 and values[1] % 1000 == 0:
+        values[0] *= 1000
+
+    # Handle 1 to 200 m
+    elif len(values) == 2 and values[0] < 10 and values[1] % 100 == 0:
+        values[0] *= 100
+
+    # Remove values that are too high
+    if (not units or units == 'ft') and values[-1] > 30_000:
+        return False
+
+    if units == 'm' and values[-1] > 9_000:
+        return False
+
+    data['elev_values'] = values
+
+    return True
 
 
 def multiply_values(span, values):
@@ -49,37 +98,25 @@ def multiply_values(span, values):
     return values
 
 
-def problem_units(span, data):
-    """Flag values that are problematic."""
-    units = [t.lower_ for t in span if t.ent_type_ in UNIT_ENTS]
-    if units:
-        units = REPLACE.get(units[0], units[0])
-        data['elevation_units'] = units
-
-        # Remove bad units
-        if units not in ('m', 'ft'):
-            return True
-
-        # Remove extreme values
-        high = data.get('elev_high')
-        if (high is not None and (
-                (units == 'm' and high > 9_000) or (units == 'ft' and high > 30_000))):
-            return True
-
-    return False
+def set_extreme(span, data):
+    """Update the extreme value flag (min or max) on the data dict."""
+    extreme = [e for t in span if ((e := EXTREME.get(t.lower_)) is not None)]
+    if extreme:
+        data['elev_extreme'] = extreme[0]
 
 
-def problem_values(data):
-    """Flag values that are problematic."""
-    low = data.get('elev_low')
-    high = data.get('elev_high')
+def set_approx(span, data):
+    """Update the extreme approximate value flag on the data dict."""
+    approx = [e for t in span if ((e := APPROX.get(t.lower_)) is not None)]
+    if approx:
+        data['elev_approx'] = True
 
-    if high is None or low == high:
-        # Filter years like "1937"
-        if not data.get('elevation_units') and 1900 < low < 2000:
-            return True
 
-    return False
+def set_implied(span, data):
+    """Update the the implied value in the data dict."""
+    implied = [i for t in span if ((i := IMPLIED.get(t.lower_)) is not None)]
+    if implied:
+        data['elev_implied'] = implied[0]
 
 
 def not_an_elevation(_):
@@ -100,58 +137,37 @@ ELEVATION = {
                 [
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
-                    {'LOWER': {'IN': TO_WORDS}},
-                    {'LOWER': {'IN': TO_WORDS}, 'OP': '?'},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
                 ],
                 [
-                    {'ENT_TYPE': 'elevation_word'},
-                    {'LOWER': {'IN': TO_WORDS}, 'OP': '?'},
-                    {'ENT_TYPE': 'word_number'},
+                    {'ENT_TYPE': 'elev_word'},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
+                ],
+                [
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
+                ],
+                [
+                    {'ENT_TYPE': 'elev_word'},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'ENT_TYPE': 'number_word'},
                     {'POS': {'IN': ['CCONJ']}, 'OP': '?'},
-                    {'ENT_TYPE': 'word_number'},
+                    {'ENT_TYPE': 'number_word'},
                     {'ENT_TYPE': 'numeric_units', 'OP': '?'},
                     {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
                 ],
-                [
-                    {'ENT_TYPE': 'elevation_word'},
-                    {'LOWER': {'IN': TO_WORDS}, 'OP': '?'},
-                    {'LOWER': {'IN': TO_WORDS}},
-                    {'TEXT': {'REGEX': INT_RE}},
-                    {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
-                ],
             ],
         },
         {
-            'label': 'elevation',
-            'on_match': partial(elevation, low=0),
+            'label': 'elev_approx',
             'patterns': [
                 [
-                    {'LOWER': {'IN': MAX_WORDS}},
-                    {'LOWER': {'IN': MAX_WORDS}, 'OP': '?'},
-                    {'TEXT': {'REGEX': INT_RE}},
-                    {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
-                ],
-            ],
-        },
-        {
-            'label': 'elevation',
-            'on_match': partial(elevation, high=MIN_VALUE),
-            'patterns': [
-                [
-                    {'LOWER': {'IN': MIN_WORDS}},
-                    {'LOWER': {'IN': MIN_WORDS}, 'OP': '?'},
-                    {'TEXT': {'REGEX': INT_RE}},
-                    {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
-                ],
-            ],
-        },
-        {
-            'label': 'elevation_approx',
-            'patterns': [
-                [
-                    {'LOWER': {'IN': APPROX_WORDS}},
+                    {'ENT_TYPE': {'IN': APPROX_ENTS}},
                 ],
             ],
         },
@@ -169,8 +185,12 @@ ELEVATION = {
                 ],
                 [
                     {'LOWER': {'IN': PREFIX_REJECT}},
-                    {'LOWER': {'IN': DASH}},
+                    {'ENT_TYPE': {'IN': 'dash'}},
                     {'TEXT': {'REGEX': INT_RE}},
+                ],
+                [
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'ENT_TYPE': {'IN': REJECT_ENTS}},
                 ],
             ],
         },
