@@ -154,7 +154,7 @@ class TestElevation(unittest.TestCase):
                 altitudes vary in different parts of the range from 2,500 m 
                 (the Zeravshansky Mts.) to 5,200 m a.s.l. (the SE. Pamirs)""")),
             [{'elev_low': 2500, 'elev_high': 5200, 'elev_units': 'm',
-              'trait': 'elevation', 'start': 52, 'end': 94}]
+              'trait': 'elevation', 'start': 47, 'end': 94}]
         )
 
     def test_elevation_21(self):
@@ -162,4 +162,17 @@ class TestElevation(unittest.TestCase):
             test_traits('as high as 1200 m'),
             [{'elev_low': 0, 'elev_high': 1200, 'elev_units': 'm',
               'trait': 'elevation', 'start': 0, 'end': 17}]
+        )
+
+    def test_elevation_22(self):
+        self.assertEqual(
+            test_traits('perching from 4-7m'),
+            []
+        )
+
+    def test_elevation_23(self):
+        self.assertEqual(
+            test_traits('not below 8000 feet'),
+            [{'elev_low': 8000, 'elev_units': 'ft',
+              'trait': 'elevation', 'start': 0, 'end': 19}]
         )

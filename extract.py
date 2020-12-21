@@ -3,14 +3,14 @@
 """Extract butterfly traits from scientific literature."""
 
 import pandas as pd
-# from tqdm import tqdm
+from tqdm import tqdm
 
 from src.matchers.pipeline import Pipeline
 from src.pylib.util import DATA_DIR, OUTPUT_DIR
 
 IN_XLSX = DATA_DIR / 'BNet_Traits_MothsRemoved_NamesNormalized_DL_2020.06.12.xlsx'
 IN_CSV = DATA_DIR / 'trait_download_all_traits_2020-11-23T19-55-54JUSTELEVATION.csv'
-OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-19a.csv'
+OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-21a.csv'
 
 TARGET = 'Elevation'
 KEEP = ' elev_low elev_high elev_units elev_approx '.split()
@@ -22,15 +22,15 @@ def elevations():
     df = df.set_index('Unique ID')
 
     df[TARGET] = df[TARGET].str.strip()
-    # df[TARGET] = df[TARGET].str.replace(r'(?<=[\d,])\s(?=[\d,])', '', regex=True)
+    df[TARGET] = df[TARGET].str.replace(r'(?<=[\d,])\s(?=[\d])', '', regex=True)
 
     for col in KEEP:
         df[col] = None
 
     pipeline = Pipeline()
 
-    # for index, row in tqdm(df.iterrows()):
-    for index, row in df.iterrows():
+    # for index, row in df.iterrows():
+    for index, row in tqdm(df.iterrows()):
         text = row[TARGET]
 
         if not text:

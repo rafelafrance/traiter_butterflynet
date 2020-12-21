@@ -12,13 +12,12 @@ dimorphic,dimorphic,lower,,,,
 dimorphic,dimorphism,lower,,,,
 dimorphic,dimorphous,lower,,,,
 elev_approx,about,lower,,,1,
-elev_approx,above,lower,,min,,
-elev_approx,below,lower,,max,,0
 elev_approx,below about,lower,,max,1,0
 elev_approx,ca,lower,,,1,
 elev_approx,higher,lower,,,1,
 elev_approx,lower,lower,,,1,0
 elev_approx,maximum unknown,lower,,,1,
+elev_approx,or more,lower,,,1,
 elev_approx,upwards,lower,,,,
 elev_approx,~,lower,,,1,
 elev_base,a. s. l.,lower,,,,
@@ -26,6 +25,7 @@ elev_base,above sea level,lower,,,,
 elev_base,asl,lower,,,,
 elev_to,<,lower,,max,1,0
 elev_to,>,lower,,min,1,
+elev_to,above,lower,,min,,
 elev_to,and,lower,,,,
 elev_to,as high as,lower,,max,,0
 elev_to,as low as,lower,,min,,
@@ -33,27 +33,22 @@ elev_to,ascending to,lower,,max,,0
 elev_to,ascends to an altitude of ,lower,,max,,0
 elev_to,ascends to,lower,,max,,0
 elev_to,at least,lower,,min,1,
+elev_to,below,lower,,max,,0
+elev_to,not above,lower,,max,,
+elev_to,not below,lower,,min,,
 elev_to,between,lower,,,,
-elev_to,excess of,lower,,min,1,
+elev_to,excess of,lower,,min,,
+elev_to,from,lower,,min,,
 elev_to,limit of,lower,,max,,0
 elev_to,lower limit of about,lower,,min,1,
 elev_to,lower limit of,lower,,min,,
 elev_to,to about,lower,,,1,0
 elev_to,to at least,lower,,min,1,
-elev_to,to over,lower,,min,1,
+elev_to,to over,lower,,min,,
 elev_to,to,lower,,,,
 elev_to,up to,lower,,max,,0
 elev_to,upwards of,lower,,min,,
 elev_to,upwards,lower,,min,,
-elev_units,m,lower,m,,,
-elev_units,m.,lower,m,,,
-elev_units,meter,lower,m,,,
-elev_units,meters,lower,m,,,
-elev_units,metres,lower,m,,,
-elev_units,metres,lower,m,,,
-elev_units,feet,lower,ft,,,
-elev_units,foot,lower,ft,,,
-elev_units,ft,lower,ft,,,
 elev_word,coastal region,lower,0,,,
 elev_word,coastal regions,lower,0,,,
 elev_word,sea level,lower,0,,,

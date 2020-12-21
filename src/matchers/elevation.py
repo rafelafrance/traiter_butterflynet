@@ -7,12 +7,12 @@ from traiter.pylib.util import to_positive_int
 from ..pylib.util import APPROX, EXTREME, IMPLIED, INT_RE, REPLACE, TRAIT_STEP
 
 NUM_WORD_ENTS = """ elev_word number_word """.split()
-UNIT_ENTS = """ elev_units """.split()
+UNIT_ENTS = """ metric_length imperial_length """.split()
 BETWEEN_ENTS = """ dash elev_to elev_approx """.split()
 APPROX_ENTS = """ elev_approx """.split()
 REJECT_ENTS = """ time_units sex month """.split()
 
-PREFIX_REJECT = """ ' """.split()
+PREFIX_REJECT = """ ' perching perched """.split()
 SUFFIX_REJECT = """ species b s e ) ° ' """.split()
 
 
@@ -74,7 +74,7 @@ def valid_values(span, data):
         values[0] *= 1000
 
     # Handle 1 to 200 m
-    elif len(values) == 2 and values[0] < 10 and values[1] % 100 == 0:
+    elif len(values) == 2 and values[0] < 30 and values[1] % 100 == 0:
         values[0] *= 100
 
     # Remove values that are too high
@@ -185,12 +185,23 @@ ELEVATION = {
                 ],
                 [
                     {'LOWER': {'IN': PREFIX_REJECT}},
-                    {'ENT_TYPE': {'IN': 'dash'}},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'TEXT': {'REGEX': INT_RE}},
+                ],
+                [
+                    {'LOWER': {'IN': PREFIX_REJECT}},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'TEXT': {'REGEX': INT_RE}},
+                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
                     {'TEXT': {'REGEX': INT_RE}},
                 ],
                 [
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': REJECT_ENTS}},
+                ],
+                [
+                    {'ENT_TYPE': {'IN': UNIT_ENTS}},
+                    {'TEXT': {'REGEX': INT_RE}},
                 ],
             ],
         },

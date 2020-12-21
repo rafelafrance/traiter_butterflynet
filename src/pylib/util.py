@@ -15,8 +15,13 @@ MERGE_STEP = 'merge'
 BUTTERFLY_TERMS = VOCAB_DIR / 'lepidoptera.csv'
 TERMS = read_terms(BUTTERFLY_TERMS)
 TERMS += shared_terms('numerics.csv')
+TERMS += shared_terms('units.csv')
 TERMS += shared_terms('time.csv')
 TERMS += shared_terms('animals.csv')
+
+# Inches abbreviation "in" interferes with the preposition "in"
+TERMS = [t for t in TERMS
+         if not (t['label'] == 'imperial_length' and t['pattern'] == 'in')]
 
 REPLACE = {t['pattern']: r for t in TERMS if (r := t.get('replace'))}
 EXTREME = {t['pattern']: e for t in TERMS if (e := t.get('extreme'))}
