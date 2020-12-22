@@ -8,7 +8,7 @@ from .mimicry import MIMICRY
 from ..pylib.util import GROUP_STEP, TERMS, TRAIT_STEP
 
 MATCHERS = [DIMORPHISM, MIMICRY, ELEVATION]
-MATCHERS = [ELEVATION]
+# MATCHERS = [ELEVATION]
 
 
 class Matcher(SpacyMatcher):
