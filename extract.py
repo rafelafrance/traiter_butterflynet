@@ -10,10 +10,12 @@ from src.pylib.util import DATA_DIR, OUTPUT_DIR
 
 IN_XLSX = DATA_DIR / 'BNet_Traits_MothsRemoved_NamesNormalized_DL_2020.06.12.xlsx'
 IN_CSV = DATA_DIR / 'trait_download_all_traits_2020-11-23T19-55-54JUSTELEVATION.csv'
-OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-21c.csv'
+OUT_CSV = OUTPUT_DIR / 'BNet_Traits_2020-12-21d.csv'
 
 TARGET = 'Elevation'
-KEEP = ' elev_low elev_high elev_units_inferred elev_approx '.split()
+KEEP = """
+    elev_low elev_high elev_units elev_units_inferred elev_approx
+    elev_ori_low elev_ori_high """.split()
 
 
 def elevations():

@@ -7,7 +7,8 @@ from ..pylib.util import MERGE_STEP
 ELEVATION = """ elevation elev_approx """.split()
 
 KEYS = """
-    trait start end elev_units_inferred elev_approx elev_low elev_high
+    trait start end elev_units elev_approx elev_low elev_high
+    elev_units_inferred elev_ori_low elev_ori_high
     """.split()
 
 # Sentinels for expanding elevation ranges
@@ -29,6 +30,10 @@ def merge(doc):
         'elev_high': MIN_VALUE,
         'implied_low': MAX_VALUE,
         'implied_high': MIN_VALUE,
+        'elev_ori_low': MAX_VALUE,
+        'elev_ori_high': MIN_VALUE,
+        'imp_ori_low': MAX_VALUE,
+        'imp_ori_high': MIN_VALUE,
         'elev_units': '',
     }
 
@@ -41,15 +46,13 @@ def merge(doc):
             merged['elev_approx'] = True
             continue
 
+        update_units(data, merged)
         update_range(data, merged)
 
         if data.get('elev_approx'):
             merged['elev_approx'] = True
 
-        if data.get('elev_units_inferred'):
-            merged['elev_units_inferred'] = True
-
-    adjust_range(merged)
+    adjust_record(merged)
     update_doc_entities(doc, merged)
 
     return doc
@@ -63,27 +66,49 @@ def update_indexes(elev, merged):
     merged['end'] = max(merged['end'], elev.end_char)
 
 
+def update_units(data, merged):
+    """Update the units for the merged entity."""
+    if units := data.get('elev_units'):
+
+        # If no units in merged then update things
+        if not merged['elev_units']:
+            merged['elev_units'] = units
+
+        # Update if merged units are imperial and data units are metric
+        elif merged['elev_units'] == 'ft' and units == 'm':
+            merged['elev_units'] = units
+
+
 def update_range(data, merged):
     """Expand the range of the elevations to include the current data."""
     # Make sure the data length is 2
     values = (data['elev_values'] + [None])[:2]
+    ori_values = (data['elev_ori_values'] + [None])[:2]
     extreme = data.get('elev_extreme')
 
     if values[-1] is not None:
         # The is a real range with both low and high values
         merged['elev_low'] = min(values[0], merged['elev_low'])
         merged['elev_high'] = max(values[1], merged['elev_high'])
+        merged['elev_ori_low'] = min(ori_values[0], merged['elev_ori_low'])
+        merged['elev_ori_high'] = max(ori_values[1], merged['elev_ori_high'])
     elif extreme == 'min':
         merged['elev_low'] = min(values[0], merged['elev_low'])
+        merged['elev_ori_low'] = min(ori_values[0], merged['elev_ori_low'])
         if (implied := data.get('elev_implied')) is not None:
             merged['implied_high'] = int(implied)
+            merged['imp_ori_high'] = int(data.get('ori_elev_implied', 0))
     elif extreme == 'max':
         merged['elev_high'] = max(values[0], merged['elev_high'])
+        merged['elev_ori_high'] = max(ori_values[0], merged['elev_ori_high'])
         if (implied := data.get('elev_implied')) is not None:
             merged['implied_low'] = int(implied)
+            merged['imp_ori_low'] = int(data.get('ori_elev_implied', 0))
     else:
         merged['elev_low'] = min(values[0], merged['elev_low'])
         merged['elev_high'] = max(values[0], merged['elev_high'])
+        merged['elev_ori_low'] = min(ori_values[0], merged['elev_ori_low'])
+        merged['elev_ori_high'] = max(ori_values[0], merged['elev_ori_high'])
 
 
 def update_doc_entities(doc, merged):
@@ -99,24 +124,42 @@ def update_doc_entities(doc, merged):
     doc.ents = tuple(entities)
 
 
-def adjust_range(merged):
+def adjust_record(merged):
     """Correct range values to remove sentinels etc."""
+    if not merged['elev_units']:
+        merged['elev_units_inferred'] = True
+
     if (merged['elev_low'] != MAX_VALUE and merged['elev_high'] != MIN_VALUE
             and merged['elev_low'] > merged['elev_high']):
+
         lo, hi = merged['elev_low'], merged['elev_high']
         merged['elev_low'], merged['elev_high'] = hi, lo
 
+        lo, hi = merged['elev_ori_low'], merged['elev_ori_high']
+        merged['elev_ori_low'], merged['elev_ori_high'] = hi, lo
+
     if merged['elev_low'] == MAX_VALUE and merged['implied_low'] != MAX_VALUE:
         merged['elev_low'] = merged['implied_low']
+        merged['elev_ori_low'] = merged['imp_ori_low']
 
     if merged['elev_high'] == MIN_VALUE and merged['implied_high'] != MIN_VALUE:
-        merged['elev_high'] = merged['implied_low']
+        merged['elev_high'] = merged['implied_high']
+        merged['elev_ori_high'] = merged['imp_ori_high']
 
     if merged['elev_low'] == MAX_VALUE:
         merged['elev_low'] = None
+        merged['elev_ori_low'] = None
 
     if merged['elev_high'] == MIN_VALUE:
         merged['elev_high'] = None
+        merged['elev_ori_high'] = None
+
+    if merged['elev_ori_low'] == MAX_VALUE:
+        merged['elev_ori_low'] = None
+
+    if merged['elev_ori_high'] == MIN_VALUE:
+        merged['elev_ori_high'] = None
 
     if merged['elev_low'] == merged['elev_high']:
         merged['elev_low'] = None
+        merged['elev_ori_low'] = None

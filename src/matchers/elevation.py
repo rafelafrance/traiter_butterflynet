@@ -8,12 +8,13 @@ from ..pylib.util import APPROX, EXTREME, IMPLIED, INT_RE, REPLACE, TRAIT_STEP
 
 NUM_WORD_ENTS = """ elev_word number_word """.split()
 UNIT_ENTS = """ metric_length imperial_length """.split()
-BETWEEN_ENTS = """ dash elev_to elev_approx """.split()
+LEADER_ENTS = """ elev_to elev_approx """.split()
+BETWEEN_ENTS = LEADER_ENTS + ['dash']
 APPROX_ENTS = """ elev_approx """.split()
 REJECT_ENTS = """ time_units sex month """.split()
 
-PREFIX_REJECT = """ ' perching perched """.split()
-SUFFIX_REJECT = """ species b s e ) ° ' """.split()
+PREFIX_REJECT = """ ’ ' ° perching perched """.split()
+SUFFIX_REJECT = """ species b s e ) ° ' ’ """.split()
 
 FEET_TO_METERS = 0.3048
 
@@ -44,10 +45,6 @@ def valid_units(span, data):
             return False
 
         data['elev_units'] = units
-
-    # Having no units is OK but flag it
-    else:
-        data['elev_units_inferred'] = True
 
     return True
 
@@ -83,11 +80,12 @@ def valid_values(span, data):
         values[0] *= 100
 
     # Convert feet to meters
+    data['elev_ori_values'] = values
     if units == 'ft':
         values = [round(v * FEET_TO_METERS) for v in values]
 
     # Remove values that are too high
-    if units == 'm' and values[-1] > 9_000:
+    if values[-1] > 9_000:
         return False
 
     data['elev_values'] = values
@@ -123,6 +121,7 @@ def set_implied(span, data):
     implied = [i for t in span if ((i := IMPLIED.get(t.lower_)) is not None)]
     if implied:
         data['elev_implied'] = implied[0]
+        data['ori_elev_implied'] = implied[0]
 
 
 def not_an_elevation(_):
@@ -154,7 +153,7 @@ ELEVATION = {
                     {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
                 ],
                 [
-                    {'ENT_TYPE': {'IN': BETWEEN_ENTS}},
+                    {'ENT_TYPE': {'IN': LEADER_ENTS}},
                     {'TEXT': {'REGEX': INT_RE}},
                     {'ENT_TYPE': {'IN': UNIT_ENTS}, 'OP': '?'},
                 ],
