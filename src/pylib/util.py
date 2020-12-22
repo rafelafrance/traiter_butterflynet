@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from traiter.pylib.terms import drop, read_terms, shared_terms
+from traiter.pylib.terms import Terms
 
 DATA_DIR = Path.cwd() / 'data'
 VOCAB_DIR = Path.cwd() / 'src' / 'vocabulary'
@@ -12,19 +12,15 @@ GROUP_STEP = 'group'
 TRAIT_STEP = 'traits'
 MERGE_STEP = 'merge'
 
-TERMS = read_terms(VOCAB_DIR / 'lepidoptera.csv')
-TERMS += shared_terms('numerics.csv')
-TERMS += shared_terms('units.csv')
-TERMS += shared_terms('time.csv')
-TERMS += shared_terms('animals.csv')
+TERMS = Terms(
+    csv_file=VOCAB_DIR / 'lepidoptera.csv',
+    shared='numerics units time animals',
+    pattern_dicts='replace extreme approx implied'
+)
+
 
 # Inches abbreviation "in" interferes with the preposition "in"
-TERMS = drop(TERMS, 'in', field='pattern')
-
-REPLACE = {t['pattern']: r for t in TERMS if (r := t.get('replace'))}
-EXTREME = {t['pattern']: e for t in TERMS if (e := t.get('extreme'))}
-APPROX = {t['pattern']: a for t in TERMS if (a := t.get('approx'))}
-IMPLIED = {t['pattern']: i for t in TERMS if (i := t.get('implied'))}
+TERMS.drop('in', field='pattern')
 
 ABBREVS = """
     Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
