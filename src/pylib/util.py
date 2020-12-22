@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from traiter.pylib.terms import read_terms, shared_terms
+from traiter.pylib.terms import drop, read_terms, shared_terms
 
 DATA_DIR = Path.cwd() / 'data'
 VOCAB_DIR = Path.cwd() / 'src' / 'vocabulary'
@@ -12,16 +12,14 @@ GROUP_STEP = 'group'
 TRAIT_STEP = 'traits'
 MERGE_STEP = 'merge'
 
-BUTTERFLY_TERMS = VOCAB_DIR / 'lepidoptera.csv'
-TERMS = read_terms(BUTTERFLY_TERMS)
+TERMS = read_terms(VOCAB_DIR / 'lepidoptera.csv')
 TERMS += shared_terms('numerics.csv')
 TERMS += shared_terms('units.csv')
 TERMS += shared_terms('time.csv')
 TERMS += shared_terms('animals.csv')
 
 # Inches abbreviation "in" interferes with the preposition "in"
-TERMS = [t for t in TERMS
-         if not (t['label'] == 'imperial_length' and t['pattern'] == 'in')]
+TERMS = drop(TERMS, 'in', field='pattern')
 
 REPLACE = {t['pattern']: r for t in TERMS if (r := t.get('replace'))}
 EXTREME = {t['pattern']: e for t in TERMS if (e := t.get('extreme'))}
