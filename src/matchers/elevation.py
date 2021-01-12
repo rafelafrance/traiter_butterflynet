@@ -2,7 +2,7 @@
 
 import re
 
-from traiter.actions import null
+from traiter.actions import forget
 from traiter.util import to_positive_int
 
 from ..pylib.consts import APPROX, EXTREME, IMPLIED, INT_RE, REPLACE, TRAIT_STEP
@@ -174,7 +174,7 @@ ELEVATION = {
         },
         {
             'label': 'not_an_elevation',
-            'on_match': null,
+            'on_match': forget,
             'patterns': [
                 [
                     {'TEXT': {'REGEX': INT_RE}},
