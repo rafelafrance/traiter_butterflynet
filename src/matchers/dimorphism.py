@@ -1,5 +1,7 @@
 """Parse dimorphism notations."""
 
+from traiter.actions import null
+
 from ..pylib.consts import GROUP_STEP, TRAIT_STEP
 
 _SIMILARITY_LEMMAS = """
@@ -126,7 +128,7 @@ DIMORPHISM = {
         },
         {
             'label': 'dimorphism',
-            'on_match': lambda _: None,
+            'on_match': null,
             'patterns': [
                 [
                     {'ENT_TYPE': 'sexes'},
