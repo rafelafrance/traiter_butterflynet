@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from traiter.pylib.terms import Terms
+from traiter.terms.csv_ import Csv
 
 DATA_DIR = Path.cwd() / 'data'
 VOCAB_DIR = Path.cwd() / 'src' / 'vocabulary'
@@ -12,15 +12,14 @@ GROUP_STEP = 'group'
 TRAIT_STEP = 'traits'
 MERGE_STEP = 'merge'
 
-TERMS = Terms(
-    csv_file=VOCAB_DIR / 'lepidoptera.csv',
-    shared='numerics units time animals',
-    pattern_dicts='replace extreme approx implied'
-)
-
-
-# Inches abbreviation "in" interferes with the preposition "in"
+TERMS = Csv.shared('numerics units time animals')
+TERMS += Csv.read_csv(VOCAB_DIR / 'lepidoptera.csv')
 TERMS.drop('in', field='pattern')
+
+REPLACE = TERMS.pattern_dicts('replace')
+EXTREME = TERMS.pattern_dicts('extreme')
+APPROX = TERMS.pattern_dicts('approx')
+IMPLIED = TERMS.pattern_dicts('implied')
 
 ABBREVS = """
     Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec

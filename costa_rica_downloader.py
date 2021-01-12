@@ -11,7 +11,7 @@ from urllib.error import HTTPError
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from src.pylib.util import DATA_DIR
+from src.pylib.consts import DATA_DIR
 
 # Make a few attempts to download a page
 ERROR_SLEEP = 120

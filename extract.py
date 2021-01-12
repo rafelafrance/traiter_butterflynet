@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from src.matchers.pipeline import Pipeline
-from src.pylib.util import DATA_DIR, OUTPUT_DIR
+from src.pylib.consts import DATA_DIR, OUTPUT_DIR
 
 IN_XLSX = DATA_DIR / 'BNet_Traits_MothsRemoved_NamesNormalized_DL_2020.06.12.xlsx'
 IN_CSV = DATA_DIR / 'trait_download_all_traits_2020-11-23T19-55-54JUSTELEVATION.csv'

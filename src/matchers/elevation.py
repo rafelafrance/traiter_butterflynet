@@ -2,9 +2,9 @@
 
 import re
 
-from traiter.pylib.util import to_positive_int
+from traiter.util import to_positive_int
 
-from ..pylib.util import INT_RE, TERMS, TRAIT_STEP
+from ..pylib.consts import APPROX, EXTREME, IMPLIED, INT_RE, REPLACE, TRAIT_STEP
 
 NUM_WORD_ENTS = """ elev_word number_word """.split()
 UNIT_ENTS = """ metric_length imperial_length """.split()
@@ -24,7 +24,7 @@ def elevation(span):
     data = {}
 
     if not (valid_units(span, data) and valid_values(span, data)):
-        return {'_forget': True}
+        return
 
     set_extreme(span, data)
     set_approx(span, data)
@@ -38,7 +38,7 @@ def valid_units(span, data):
     units = [t.lower_ for t in span if t.ent_type_ in UNIT_ENTS]
 
     if units:
-        units = TERMS.replace.get(units[0], units[0])
+        units = REPLACE.get(units[0], units[0])
 
         # Remove bad units
         if units not in ('m', 'ft'):
@@ -52,7 +52,7 @@ def valid_units(span, data):
 def valid_values(span, data):
     """Validate and update data values."""
     values = [to_positive_int(t.text) for t in span if re.match(INT_RE, t.text)]
-    values += [int(TERMS.replace[t.lower_]) for t in span
+    values += [int(REPLACE[t.lower_]) for t in span
                if t.ent_type_ in NUM_WORD_ENTS]
     values = multiply_values(span, values)
 
@@ -98,35 +98,30 @@ def multiply_values(span, values):
     """Update values written as 'two to five or six thousand feet'."""
     multiply = [t.text for t in span if t.ent_type_ == 'numeric_units']
     if multiply:
-        multiply = int(TERMS.replace[multiply[0]])
+        multiply = int(REPLACE[multiply[0]])
         values = [v * multiply for v in values]
     return values
 
 
 def set_extreme(span, data):
     """Update the extreme value flag (min or max) on the data dict."""
-    extreme = [e for t in span if (e := TERMS.extreme.get(t.lower_)) is not None]
+    extreme = [e for t in span if (e := EXTREME.get(t.lower_)) is not None]
     if extreme:
         data['elev_extreme'] = extreme[0]
 
 
 def set_approx(span, data):
     """Update the extreme approximate value flag on the data dict."""
-    if [e for t in span if (e := TERMS.approx.get(t.lower_)) is not None]:
+    if [e for t in span if (e := APPROX.get(t.lower_)) is not None]:
         data['elev_approx'] = True
 
 
 def set_implied(span, data):
     """Update the the implied value in the data dict."""
-    implied = [i for t in span if (i := TERMS.implied.get(t.lower_)) is not None]
+    implied = [i for t in span if (i := IMPLIED.get(t.lower_)) is not None]
     if implied:
         data['elev_implied'] = implied[0]
         data['ori_elev_implied'] = implied[0]
-
-
-def not_an_elevation(_):
-    """Negative matches."""
-    return {'_forget': True}
 
 
 ELEVATION = {
@@ -178,7 +173,7 @@ ELEVATION = {
         },
         {
             'label': 'not_an_elevation',
-            'on_match': not_an_elevation,
+            'on_match': lambda _: None,
             'patterns': [
                 [
                     {'TEXT': {'REGEX': INT_RE}},

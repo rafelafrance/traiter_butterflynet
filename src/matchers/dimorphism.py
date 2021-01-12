@@ -1,6 +1,6 @@
 """Parse dimorphism notations."""
 
-from ..pylib.util import GROUP_STEP, TRAIT_STEP
+from ..pylib.consts import GROUP_STEP, TRAIT_STEP
 
 _SIMILARITY_LEMMAS = """
     similar different dissimilar vary """.split()
@@ -29,12 +29,6 @@ def dimorphism(span):
 def dimorphism_trunc(_):
     """Enrich the match."""
     data = {'dimorphism': 'sexual dimorphism'}
-    return data
-
-
-def not_dimorphism(_):
-    """Enrich the match."""
-    data = {'_forget': True}
     return data
 
 
@@ -132,7 +126,7 @@ DIMORPHISM = {
         },
         {
             'label': 'dimorphism',
-            'on_match': not_dimorphism,
+            'on_match': lambda _: None,
             'patterns': [
                 [
                     {'ENT_TYPE': 'sexes'},

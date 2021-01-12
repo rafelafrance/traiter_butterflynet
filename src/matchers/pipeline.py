@@ -1,19 +1,23 @@
 """Build the NLP pipeline."""
 
-from traiter.pylib.pipeline import SpacyPipeline
-from traiter.pylib.sentencizer import SpacySentencizer
-from traiter.pylib.to_entities import ToEntities
+from traiter.matchers.rule import Rule
+from traiter.matchers.term import Term
+from traiter.pipeline import SpacyPipeline
+from traiter.sentencizer import Sentencizer
+from traiter.to_entities import ToEntities
 
-from .matcher import Matcher
+from .dimorphism import DIMORPHISM
+from .elevation import ELEVATION
 from .merge import merge
-from ..pylib.util import ABBREVS, TRAIT_STEP
+from .mimicry import MIMICRY
+from ..pylib.consts import ABBREVS, GROUP_STEP, TERMS, TRAIT_STEP
+
+MATCHERS = [DIMORPHISM, MIMICRY, ELEVATION]
+# MATCHERS = [ELEVATION]
 
 
 class Pipeline(SpacyPipeline):
     """Build a custom traiter pipeline."""
-
-    token2entity = {TRAIT_STEP}
-    entities2keep = {TRAIT_STEP}
 
     def __init__(self):
         super().__init__()
@@ -21,11 +25,12 @@ class Pipeline(SpacyPipeline):
 
         self.nlp.disable_pipes(['ner'])
 
-        self.matcher = Matcher(self.nlp)
-        sentencizer = SpacySentencizer(ABBREVS)
-        to_entities = ToEntities(self.entities2keep, self.token2entity)
+        token2entity = {TRAIT_STEP}
+        entities2keep = {TRAIT_STEP}
 
-        self.nlp.add_pipe(sentencizer, before='parser')
-        self.nlp.add_pipe(self.matcher, last=True)
-        self.nlp.add_pipe(to_entities, last=True)
+        Sentencizer.add_pipe(self.nlp, ABBREVS, before='parser')
+        Term.add_pipes(self.nlp, TERMS, before='parser')
+        Rule.add_pipe(self.nlp, MATCHERS, GROUP_STEP, before='parser')
+        Rule.add_pipe(self.nlp, MATCHERS, TRAIT_STEP, before='parser')
+        ToEntities.add_pipe(self.nlp, entities2keep, token2entity)
         self.nlp.add_pipe(merge, last=True)

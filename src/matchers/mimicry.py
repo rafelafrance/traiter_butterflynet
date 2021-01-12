@@ -1,6 +1,6 @@
 """Parse dimorphism notations."""
 
-from ..pylib.util import TRAIT_STEP
+from ..pylib.consts import TRAIT_STEP
 
 
 def mimicry(span):

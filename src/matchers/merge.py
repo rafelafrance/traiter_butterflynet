@@ -2,7 +2,7 @@
 
 from spacy.tokens import Span
 
-from ..pylib.util import MERGE_STEP
+from ..pylib.consts import MERGE_STEP
 
 ELEVATION = """ elevation elev_approx """.split()
 
